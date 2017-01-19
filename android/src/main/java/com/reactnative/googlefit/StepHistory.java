@@ -1,12 +1,11 @@
 /**
  * Copyright (c) 2017-present, Stanislav Doskalenko - doskalenko.s@gmail.com
  * All rights reserved.
- *
+ * <p>
  * This source code is licensed under the MIT-style license found in the
  * LICENSE file in the root directory of this source tree.
- *
+ * <p>
  * Based on Asim Malik android source code, copyright (c) 2015
- *
  **/
 
 package com.reactnative.googlefit;
@@ -23,6 +22,7 @@ import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataReadRequest;
@@ -43,7 +43,7 @@ public class StepHistory {
 
     private static final String TAG = "History";
 
-    public StepHistory(ReactContext reactContext, GoogleFitManager googleFitManager){
+    public StepHistory(ReactContext reactContext, GoogleFitManager googleFitManager) {
         this.mReactContext = reactContext;
         this.googleFitManager = googleFitManager;
     }
@@ -93,6 +93,19 @@ public class StepHistory {
         sendEvent(this.mReactContext, "StepHistoryChangedEvent", map);
     }
 
+    private void printDatasource(DataSource dataSource) {
+        Log.i(TAG, "\tgetOriginalDataSource: " + dataSource);
+        Log.i(TAG, "\tgetAppPackageName: " + dataSource.getAppPackageName());
+        Log.i(TAG, "\tgetName: " + dataSource.getName());
+        Log.i(TAG, "\tgetStreamIdentifier: " + dataSource.getStreamIdentifier());
+        Log.i(TAG, "\tgetStreamName: " + dataSource.getStreamName());
+        if (dataSource.getDevice() != null) {
+            Log.i(TAG, "\tgetDevice: " + dataSource.getDevice());
+            Log.i(TAG, "\tgetModel: " + dataSource.getDevice().getModel());
+            Log.i(TAG, "\tgetUid: " + dataSource.getDevice().getUid());
+        }
+    }
+
     private void processDataSet(DataSet dataSet, WritableArray map) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         DateFormat dateFormat = DateFormat.getDateInstance();
@@ -104,6 +117,11 @@ public class StepHistory {
 
         for (DataPoint dp : dataSet.getDataPoints()) {
             Log.i(TAG, "Data point:");
+            printDatasource(dp.getDataSource());
+            Log.i(TAG, "Data point2:");
+            printDatasource(dp.getOriginalDataSource());
+
+            Log.i(TAG, "\tgetVersionCode: " + dp.getVersionCode());
             Log.i(TAG, "\tType: " + dp.getDataType().getName());
             Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
             Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
@@ -111,7 +129,7 @@ public class StepHistory {
             String day = formatter.format(new Date(dp.getStartTime(TimeUnit.MILLISECONDS)));
             Log.i(TAG, "Day: " + day);
 
-            for(Field field : dp.getDataType().getFields()) {
+            for (Field field : dp.getDataType().getFields()) {
                 Log.i("History", "\tField: " + field.getName() +
                         " Value: " + dp.getValue(field));
 
